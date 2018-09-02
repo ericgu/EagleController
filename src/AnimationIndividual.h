@@ -7,7 +7,7 @@ class AnimationIndividual: public IAnimation
  
   public: 
 
-    AnimationIndividual(Strip* pStrip) : 
+    AnimationIndividual(Strip* pStrip) :
         IAnimation(pStrip, "Individual")
     {
       _pColors = new RgbColor[GetPixelCount()];      
