@@ -68,7 +68,7 @@ void setup() {
   wifiHandler.LoadConfiguration(&persistentStorage);
   if (nodeType == NODE_TYPE_LOCAL_NET)
   {
-    wifiHandler.setParamsForDebug("ASUS", "Gunnerson", "EDP44");
+    wifiHandler.setParamsForDebug("DozerNet", "Gunnerson", "EDP44");
   }
   
   if (nodeType == NODE_TYPE_AP_NET_FORGETFUL)

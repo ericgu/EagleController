@@ -65,6 +65,7 @@ class PixelHandler
 
     void InitStrip()
     {
+      Serial.print("InitString"); Serial.println(_pPersistentStorage->_ledCount);
       _pStrip = new Strip(_pixelPin, _pPersistentStorage->_ledCount);
       _pStrip->Init();
     }
@@ -106,7 +107,7 @@ class PixelHandler
       return _animationCommands.SaveToString();
     }
 
-    void ProcessMessage(Command command)
+    void ProcessMessage(Command& command)
     {
       if (command.StartsWith("s"))   // save the current state to flash
       {
@@ -119,7 +120,7 @@ class PixelHandler
           _pPersistentStorage->Save();
         }
       }
-      else if (command.StartsWith("n"))   // save the last animation to flash
+      else if (command.StartsWith("n"))   // Update the LED count
       {
         _pPersistentStorage->_ledCount = command._values[0];
         _pixelCountUpdated = true;

@@ -2,6 +2,8 @@
 #include "MainPage.h"
 #include "ColorTable.h"
 
+#define CodeVersionNumber "V1.0"
+
 class WebServer
 {
   private:
@@ -11,8 +13,6 @@ class WebServer
     WifiHandler* _pWifiHandler;
     PixelHandler* _pPixelHandler;
     String _colorTableHtml;
-
-    static constexpr char _codeVersionNumber[] = "V1.0";
 
     static void OnNotFound(AsyncWebServerRequest* pRequest)
     {
@@ -26,7 +26,7 @@ class WebServer
     static void OnInfo(AsyncWebServerRequest* pRequest)
     {
       String info = "EagleDecorations ESPClient";
-      info += _codeVersionNumber;
+      info += CodeVersionNumber;
       info += " ";
       info +=  _pWebServer->_pWifiHandler->HostNameGet();
       pRequest->send(200, "text/plain", info.c_str());
@@ -145,6 +145,7 @@ class WebServer
 
         Command command(content.c_str(), -1);
         _pWebServer->_pPixelHandler->ProcessMessage(command);
+        Serial.println("Done with command execution");
       }      
     }
 

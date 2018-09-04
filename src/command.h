@@ -86,6 +86,10 @@ class Command
       
       while (*pValues != '\0')
       {
+        if (_count == MaxValues)
+        {
+          Serial.println("Too many values in Command.Parse()");
+        }
         _values[_count] = atoi(pValues);
         _count++;
 

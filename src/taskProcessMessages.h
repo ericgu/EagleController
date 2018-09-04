@@ -119,12 +119,17 @@ private:
 
     virtual void OnUpdate(uint32_t deltaTime)
     {
+      //Serial.println("update1"); Serial.flush();
       UpdateHandleUdp();
+      //Serial.println("update2"); Serial.flush();
       
       UpdateHandleLed();
+      //Serial.println("update3"); Serial.flush();
 
       UpdatePixelHandler();
+      //Serial.println("update4"); Serial.flush();
  
       _pWifiHandler->Init(WifiStatusHandler, this);
+      //Serial.println("update5"); Serial.flush();
     }     
 };

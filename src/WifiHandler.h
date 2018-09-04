@@ -73,6 +73,7 @@ class WifiHandler
       if (_pConfiguration->SsidGet().length() != 0)
       {
         _wifiState = STATE_STARTING_STA;
+        Serial.println("STATE_STARTING_STA");
       }
     }
 

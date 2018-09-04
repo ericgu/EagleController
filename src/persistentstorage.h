@@ -92,7 +92,7 @@ class PersistentStorage
         Save(); // save on upgrade...
       }
 
-      if (_ledCount > 1000)
+      if (_ledCount > 1000 || _ledCount <= 0)
       {
         _ledCount = 33;
       }
@@ -103,13 +103,13 @@ class PersistentStorage
       }
 
       Serial.println("Loaded configuration");
-      Serial.println(_version);
-      Serial.println(_size);
-      Serial.println(_hostName);
-      Serial.println(_ssid);
-      Serial.println(_password);
-      Serial.println(_storedAnimation);
-      Serial.println((int) _ledCount);
+      Serial.print("Version: "); Serial.println(_version);
+      Serial.print("Size: "); Serial.println(_size);
+      Serial.print("Hostname: "); Serial.println(_hostName);
+      Serial.print("SSID: "); Serial.println(_ssid);
+      Serial.print("Password: "); Serial.println(_password);
+      Serial.print("StoredAnimation: "); Serial.println(_storedAnimation);
+      Serial.print("LED Count: "); Serial.println((int) _ledCount);
     }
 
     void Reset()

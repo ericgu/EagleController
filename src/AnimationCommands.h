@@ -18,8 +18,8 @@ class AnimationCommands
       _segmentCount = 0;
       _cycle = 0;
 
-      _segmentAllocated = 1;
-      _pSegments = new Command[1];
+      _segmentAllocated = 10;
+      _pSegments = new Command[_segmentAllocated];
     }
 
     void LoadFromString(String storedAnimationFormat)
@@ -35,6 +35,7 @@ class AnimationCommands
           int period = tokenizer.GetToken().toInt();
           String message = tokenizer.GetToken();
 
+          //Serial.print("Command: "); Serial.println(message);
           Add(Command(message, period));
         }
       }
@@ -65,7 +66,7 @@ class AnimationCommands
       return s;
     }
 
-    void Add(Command command)
+    void Add(Command& command)
     {
       if (command._period < 0)
       {
@@ -100,7 +101,7 @@ class AnimationCommands
         *(_pSegments + _segmentCount) = command;
         _segmentCount++;
 
-        // DumpSegments();        
+        //DumpSegments();        
 
           // force switch to the new one on the next cycle. 
         _currentSegment = _segmentCount - 1;
@@ -120,6 +121,11 @@ class AnimationCommands
 
     Command* GetNextMessage()
     {
+      //Serial.println("GetNextMessage");
+      //Serial.println(_cycle);
+      //Serial.println(_currentSegment);
+      //Serial.println("GetNextMessage");
+
       if (_cycle <= 0)
       {
         _currentSegment = (_currentSegment + 1) % _segmentCount;
@@ -130,6 +136,7 @@ class AnimationCommands
 
         if (_segmentCount != 0)
         {
+          pSegment->Dump();
           return pSegment;
         }
       }
