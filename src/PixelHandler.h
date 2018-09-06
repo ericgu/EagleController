@@ -29,7 +29,8 @@ class PixelHandler
   public:
     PixelHandler(PersistentStorage* pPersistentStorage, int pixelPin) : 
         _pPersistentStorage(pPersistentStorage),
-        _pixelPin(pixelPin)
+        _pixelPin(pixelPin),
+        _animationCommands(NULL)
     { 
       _pStrip = 0;
       _pixelCountUpdated = false;
@@ -98,7 +99,10 @@ class PixelHandler
     {
       Serial.print("Attempting restart using: ");
       Serial.println(_pPersistentStorage->_storedAnimation);
-      _animationCommands.LoadFromString(_pPersistentStorage->_storedAnimation);
+      if (strlen(_pPersistentStorage->_storedAnimation) != 0)
+      {
+        _animationCommands = AnimationCommands(_pPersistentStorage->_storedAnimation);
+      }
       Serial.println("Loaded");
     }
 
@@ -136,36 +140,37 @@ class PixelHandler
       }
       else
       {
-        _animationCommands.Add(command);
+        _animationCommands = AnimationCommands(command._message);
       }
     }
 
     void CheckForCommandUpdate()
     {        
-      Command* pCommand = _animationCommands.GetNextMessage();
-      if (!pCommand)
+      Command command = _animationCommands.GetNextMessage();
+
+      if (command._period == -1)
       {
         return;
       }
       
       for (int i = 0; i < AnimationCount; i++)
       {
-        if (_pAnimations[i]->ProcessMessage(pCommand))
+        if (_pAnimations[i]->ProcessMessage(&command))
         {
           _pCurrentAnimation = _pAnimations[i];
           Serial.print("Switched to: ");
           Serial.print(_pCurrentAnimation->getName());
           Serial.print(" -> ( ");
-          Serial.print(pCommand->_period);
+          Serial.print(command._period);
           Serial.print(") ");
-          Serial.println(pCommand->_message);
+          Serial.println(command._message);
             
           return;
         }
       }
 
       Serial.print("Unrecognized: ");
-      Serial.println(pCommand->_message);
+      Serial.println(command._message);
     }
 
     void Update()

@@ -82,6 +82,11 @@ class Command
     void Parse(const char* pValues)
     {
       _count = 0;
+      if (!pValues)
+      {
+        return;
+      }
+      
       pValues = SkipToFirstDigit(pValues);
       
       while (*pValues != '\0')

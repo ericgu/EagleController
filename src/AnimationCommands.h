@@ -4,55 +4,92 @@ class AnimationCommands
 {
   private:
   
-    Command* _pSegments;
-    int _currentSegment;
-    int _segmentCount;
-    int _segmentAllocated;
+    Command* _pCommands;
+    int _currentCommand;
+    int _commandCount;
     int _cycle;
 
-  public:
-
-    AnimationCommands()
-    {
-      _currentSegment = 0;
-      _segmentCount = 0;
-      _cycle = 0;
-
-      _segmentAllocated = 10;
-      _pSegments = new Command[_segmentAllocated];
-    }
 
     void LoadFromString(String storedAnimationFormat)
     {
+      _commandCount = 0;
+      _pCommands = 0;
+      _currentCommand = -1;
+      _cycle = 0;
+
       if (storedAnimationFormat.startsWith("$"))
       {
-        _segmentCount = 0;
+        _commandCount = 0;
+        const char* pString = storedAnimationFormat.c_str();
+        while (*pString != '\0')
+        {
+          if (*pString == '$')
+          {
+            _commandCount++;
+          }
+          pString++;
+        }
+        _commandCount /= 2;
+        Allocate(_commandCount);
         
         Tokenizer tokenizer(storedAnimationFormat, '$');
 
+        int segment = 0;
         while (!tokenizer.GetFinished())
         {
           int period = tokenizer.GetToken().toInt();
           String message = tokenizer.GetToken();
 
           //Serial.print("Command: "); Serial.println(message);
-          Add(Command(message, period));
+          *(_pCommands + segment) = Command(message, period);
+          segment++;
         }
       }
-      else
+      else if (storedAnimationFormat != NULL)
       {
-        Command command(storedAnimationFormat.c_str(), -1);
-        Add(command);
+        Allocate(1);
+
+        *_pCommands = Command(storedAnimationFormat.c_str(), 1000000);
       }
     }
 
-    String SaveToString()
+    void Allocate(int commandCount)
+    {
+      _commandCount = commandCount;
+      _pCommands = new Command[_commandCount];
+    }
+
+  public:
+    AnimationCommands(char* commands)
+    {
+      LoadFromString(String(commands));
+    }
+
+    AnimationCommands(String commands)
+    {
+      LoadFromString(commands);
+    }
+
+    AnimationCommands(const AnimationCommands &ob)
+    {
+      LoadFromString(ob.SaveToString());
+    }
+
+    ~AnimationCommands()
+    {
+      if (_pCommands)
+      {
+        delete _pCommands;
+      }
+    }
+
+    String SaveToString() const
     {
       String s;
 
-      Command* pSegments = _pSegments;
+      Command* pSegments = _pCommands;
 
-      for (int i = 0; i < _segmentCount; i++)
+      for (int i = 0; i < _commandCount; i++)
       {
         s.concat("$");
         char buffer[7];
@@ -66,98 +103,61 @@ class AnimationCommands
       return s;
     }
 
-    void Add(Command& command)
-    {
-      if (command._period < 0)
-      {
-        _segmentCount = 0;
-        _currentSegment = 0;
-        _cycle = 0;
-        command._period = 1000000;
-      }
-
-      if (command._message.startsWith("$"))
-      {
-        LoadFromString(command._message);
-      }
-      else
-      {
-          // resize if necessary
-          
-        if (_segmentCount == _segmentAllocated)
-        {
-          Command* pNew = new Command[_segmentAllocated * 2];
-
-          for (int i = 0; i < _segmentCount; i++)
-          {
-            *(pNew + i) = *(_pSegments + i);
-          }
-
-          delete _pSegments;
-          _pSegments = pNew;
-          _segmentAllocated = _segmentAllocated * 2;
-        }
-
-        *(_pSegments + _segmentCount) = command;
-        _segmentCount++;
-
-        //DumpSegments();        
-
-          // force switch to the new one on the next cycle. 
-        _currentSegment = _segmentCount - 1;
-        _cycle = 0;
-      }
-    }
-
     void DumpSegments()
     {
-      Serial.println("Segments: ");
-      for (int i = 0; i < _segmentCount; i++)
+      Serial.println("Commands: ");
+      for (int i = 0; i < _commandCount; i++)
       {
-        Command *pTemp = _pSegments + i;
+        Command *pTemp = _pCommands + i;
         Serial.print(i); Serial.print(": "); Serial.print(pTemp->_period); Serial.print(" "); Serial.println(pTemp->_message);
       }
     }
 
-    Command* GetNextMessage()
+    Command GetNextMessage()
     {
-      //Serial.println("GetNextMessage");
-      //Serial.println(_cycle);
-      //Serial.println(_currentSegment);
-      //Serial.println("GetNextMessage");
+      Serial.println("GetNextMessage");
+      Serial.println(_cycle);
+      Serial.println(_currentCommand);
+      Serial.println("GetNextMessage");
 
-      if (_cycle <= 0)
+      if (_cycle <= 0 && _pCommands)
       {
-        _currentSegment = (_currentSegment + 1) % _segmentCount;
+        _currentCommand = (_currentCommand + 1) % _commandCount;
 
-        Command* pSegment = _pSegments + _currentSegment;
+        Command* pCommand = _pCommands + _currentCommand;
 
-        _cycle = pSegment->_period;
+        _cycle = pCommand->_period;
 
-        if (_segmentCount != 0)
+        if (_commandCount != 0)
         {
-          pSegment->Dump();
-          return pSegment;
+          pCommand->Dump();
+          return *pCommand;
         }
       }
       _cycle--;
 
-      return 0;
+      return Command(0, -1);
     }
 
     int Count()
     {
-      return _segmentCount;
+      return _commandCount;
     }
 
     Command GetSegment(int index)
     {
-      if (index >= _segmentCount)
+      if (index >= _commandCount)
       {
         return 0;
       }
 
-      return *(_pSegments + index);
+      return *(_pCommands + index);
+    }
+
+    //=operator function with deep copy.
+    void operator=(const AnimationCommands &ob)
+    {
+      LoadFromString(ob.SaveToString());
     }
 };
 
