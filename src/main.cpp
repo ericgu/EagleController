@@ -11,6 +11,8 @@ extern "C" {
 #include "user_interface.h"
 }
 
+#include "UdpLogger.h"
+
 #include "PersistentStorage.h"
 #include "WifiHandler.h"
 #include "PixelHandler.h"
@@ -34,11 +36,13 @@ WebServer webServer;
 #define NODE_TYPE_LOCAL_NET 2
 #define NODE_TYPE_AP_NET_FORGETFUL 3
 
-int nodeType = 2;
+int nodeType = 1;
 
 DNSServer dnsServer;
 
 void setup() { 
+  UdpLogger.init(12345, "EagleController: ");
+
   Serial.begin(115200);
   Serial.print("EagleDecorations Controller Version ");
   Serial.println(Version);
@@ -47,7 +51,7 @@ void setup() {
   if (nodeType == NODE_TYPE_AP_NET_FORGETFUL)
   {
     strcpy(persistentStorage._ssid, "junkjunkjunk");  // set bad wifi params for testing...
-    strcpy(persistentStorage._storedAnimation, "invalid");  // set bad animation. 
+    strcpy(persistentStorage._storedAnimation, "$200$rgbx190,190,190,200$200$rgbx0,0,0,200");  // set bad animation. 
     persistentStorage._ledCount = 33;
     persistentStorage.Save();
   }

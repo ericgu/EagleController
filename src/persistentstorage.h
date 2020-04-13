@@ -99,7 +99,16 @@ class PersistentStorage
 
       if (*_storedAnimation == 255)
       {
-        strcpy(_storedAnimation, "colx500,180");
+        SetDefaultAnimation();
+      }
+
+      if (*_storedAnimation != '$')
+      {
+        char* pTemp = new char[strlen(_storedAnimation) + 1];
+        strcpy(pTemp, _storedAnimation);
+        strcpy(_storedAnimation, "$1000000$");
+        strcat(_storedAnimation, pTemp);
+        delete pTemp;
       }
 
       Serial.println("Loaded configuration");
@@ -112,12 +121,17 @@ class PersistentStorage
       Serial.print("LED Count: "); Serial.println((int) _ledCount);
     }
 
+    void SetDefaultAnimation()
+    {
+      strcpy(_storedAnimation, "$1000000$colx500,180");
+    }
+
     void Reset()
     {
       strcpy(_hostName, "");
       strcpy(_ssid, "");
       strcpy(_password, "");
-      strcpy(_storedAnimation, "colx500,180");
+      SetDefaultAnimation();
       _ledCount = 33;
       Save();
     }
@@ -154,9 +168,20 @@ class PersistentStorage
 
     bool SetStoredAnimation(String storedAnimation)
     {
+      Serial.print("SetStoredAnimation: "); Serial.println(storedAnimation.length()); Serial.print(" "); Serial.println(storedAnimation);
+
+      if (!storedAnimation.startsWith("$"))
+      {
+        String extended("$1000000$");
+        extended.concat(storedAnimation);
+        storedAnimation = extended;
+        Serial.println(storedAnimation);
+      }
+
       if (storedAnimation.length() < sizeof(_storedAnimation))
       {
         storedAnimation.toCharArray(_storedAnimation, sizeof(_storedAnimation));
+        Serial.print("Saved animation: "); Serial.println(_storedAnimation);
         return true;
       }
 

@@ -12,6 +12,7 @@
 #include "AnimationFlashDecay.h"
 #include "AnimationSetChunk.h"
 #include "AnimationRandomFlash.h"
+#include "AnimationChaser.h"
 
 class PixelHandler
 {
@@ -20,7 +21,7 @@ class PixelHandler
     PersistentStorage* _pPersistentStorage;
     int _pixelPin;
 
-    const int AnimationCount = 7;
+    const int AnimationCount = 8;
     IAnimation** _pAnimations;
     IAnimation* _pCurrentAnimation;
     bool _pixelCountUpdated;
@@ -29,11 +30,12 @@ class PixelHandler
   public:
     PixelHandler(PersistentStorage* pPersistentStorage, int pixelPin) : 
         _pPersistentStorage(pPersistentStorage),
-        _pixelPin(pixelPin),
-        _animationCommands(NULL)
+        _pixelPin(pixelPin)
     { 
       _pStrip = 0;
       _pixelCountUpdated = false;
+      _animationCommands.SetAnimation(_pPersistentStorage->_storedAnimation);
+      _pCurrentAnimation = 0;
     }
 
     Strip* GetStrip()
@@ -57,6 +59,7 @@ class PixelHandler
       _pAnimations[4] = new AnimationFlashDecay(_pStrip);
       _pAnimations[5] = new AnimationSetChunk(_pStrip);
       _pAnimations[6] = new AnimationRandomFlash(_pStrip);
+      _pAnimations[7] = new AnimationChaser(_pStrip);
     }
 
     void ClearStrip()
@@ -66,7 +69,7 @@ class PixelHandler
 
     void InitStrip()
     {
-      Serial.print("InitString"); Serial.println(_pPersistentStorage->_ledCount);
+      Serial.print("InitStrip: "); Serial.println(_pPersistentStorage->_ledCount);
       _pStrip = new Strip(_pixelPin, _pPersistentStorage->_ledCount);
       _pStrip->Init();
     }
@@ -84,15 +87,18 @@ class PixelHandler
     void SetUnconnectedAnimation()
     {
       Serial.println("Red alternate");
-      Command command("alt 100,000,000,000,000,000,250");
-      ProcessMessage(command);
+      SetDefaultAnimation();   
     }
 
     void SetAccessPointAnimation()
     {
       Serial.println("Yellow alternate");
-      Command command("alt 150,150,000,000,000,000,250");
-      ProcessMessage(command);
+      SetDefaultAnimation();   
+    }
+
+    void SetDefaultAnimation()
+    {
+      _animationCommands.SetAnimation("$200$rgbx200,0,0,200$200$rgbx0,0,0,200$200$rgbx0,200,0,200$200$rgbx0,0,0,200$200$rgbx0,0,200,200$200$rgbx0,0,0,200");
     }
 
     void SetProvisionedAnimation()
@@ -101,38 +107,33 @@ class PixelHandler
       Serial.println(_pPersistentStorage->_storedAnimation);
       if (strlen(_pPersistentStorage->_storedAnimation) != 0)
       {
-        _animationCommands = AnimationCommands(_pPersistentStorage->_storedAnimation);
+        ProcessMessage(_pPersistentStorage->_storedAnimation);
       }
       Serial.println("Loaded");
     }
 
     String GetCurrentCommand()
     {
-      return _animationCommands.SaveToString();
+      return _pPersistentStorage->_storedAnimation;
     }
 
-    void ProcessMessage(Command& command)
+    void ProcessMessage(String commandString)
     {
-      if (command.StartsWith("s"))   // save the current state to flash
+      if (commandString.startsWith("s"))   // save the current state to flash
       {
-        String savedAnimation = _animationCommands.SaveToString();
-        
-        if (_pPersistentStorage->SetStoredAnimation(savedAnimation))
-        {
-          Serial.println("Saving animation");
-          Serial.println(savedAnimation);
-          _pPersistentStorage->Save();
-        }
+        Serial.println("Saving animation");
+        _pPersistentStorage->Save();
       }
-      else if (command.StartsWith("n"))   // Update the LED count
+      else if (commandString.startsWith("n"))   // Update the LED count
       {
+        Command command(commandString, -1);
         _pPersistentStorage->_ledCount = command._values[0];
         _pixelCountUpdated = true;
         _pPersistentStorage->Save();
         _pStrip->Clear();
         ESP.restart();
       }
-      else if (command.StartsWith("reset"))
+      else if (commandString.startsWith("reset"))
       {
         _pPersistentStorage->Reset();
         _pStrip->Clear();
@@ -140,7 +141,10 @@ class PixelHandler
       }
       else
       {
-        _animationCommands = AnimationCommands(command._message);
+        Serial.print("Update: "); Serial.println(commandString);
+
+        _pPersistentStorage->SetStoredAnimation(commandString);
+        _animationCommands.SetAnimation(_pPersistentStorage->_storedAnimation);
       }
     }
 
@@ -152,7 +156,9 @@ class PixelHandler
       {
         return;
       }
-      
+
+      //Serial.print("CheckForCommandUpdate: "); Serial.println(command._message);
+
       for (int i = 0; i < AnimationCount; i++)
       {
         if (_pAnimations[i]->ProcessMessage(&command))
@@ -177,6 +183,9 @@ class PixelHandler
     {
       CheckForCommandUpdate();
       
-      _pCurrentAnimation->Update();
+      if (_pCurrentAnimation)
+      {
+        _pCurrentAnimation->Update();
+      }
     }
 };

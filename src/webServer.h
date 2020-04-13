@@ -48,6 +48,8 @@ class WebServer
 
       response += MainPageHtml3;
 
+      //Serial.println(response);
+
       pRequest->send(200, "text/html", response);
 
       //Serial.println("< MainPage");
@@ -143,8 +145,7 @@ class WebServer
 
         Serial.print("content: "); Serial.println(content);
 
-        Command command(content.c_str(), -1);
-        _pWebServer->_pPixelHandler->ProcessMessage(command);
+        _pWebServer->_pPixelHandler->ProcessMessage(content);
         Serial.println("Done with command execution");
       }      
     }

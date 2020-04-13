@@ -11,7 +11,7 @@ class Command
 
     static bool IsDigit(const char c)
     {
-      return c >= '0' && c <= '9';
+      return (c >= '0' && c <= '9') || c == '-';
     }
 
     static bool IsHexDigit(const char c)
@@ -94,6 +94,7 @@ class Command
         if (_count == MaxValues)
         {
           Serial.println("Too many values in Command.Parse()");
+          return;
         }
         _values[_count] = atoi(pValues);
         _count++;

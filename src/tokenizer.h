@@ -4,51 +4,85 @@ class Tokenizer
   int _start;
   char _separator;
   bool _finished;
+  const char* _pString;
+  const char* _pStart;
+  char* _pBuffer;
+  int _maxLength;
   
 public:
-  Tokenizer(String string, char separator)
+  Tokenizer(char separator, int maxLength)
   {
-    _finished = false;
-    _string = string;
-    _start = 0;
     _separator = separator;
-    if (_string.charAt(0) == '$')
-    {
-      _start = 1;
-    }
+    _pBuffer = new char[maxLength + 1];
+    _maxLength = maxLength;
   }
 
-  String GetToken()
+  void SetString(const char* pString)
   {
-    int end = _start + 1;
+    //Serial.print("SetString: "); Serial.println(pString);
+    _pString = pString;
+    _pStart = pString;
+    _finished = false;
+  }
 
-    char c;
-    while (1)
+  char* GetToken()
+  {
+    //Serial.print("GetToken1: "); Serial.println(_pString); Serial.flush();
+
+    const char* pEnd = _pStart;
+    if (*pEnd == '$')
     {
-      c = _string.charAt(end);
-      if (c == '$' || c == 0)
-      {
-        break;
-      }
-      end++;
+      pEnd++;
     }
 
-    String token = _string.substring(_start, end);
-    if (c == 0)
+    //Serial.print("GetToken2: "); Serial.println(pEnd); Serial.flush();
+
+    while (*pEnd != '$' && *pEnd != '\0')
+    {
+      pEnd++;
+    }
+
+    //Serial.print("GetToken3: "); Serial.println(pEnd); Serial.flush();
+    if (pEnd == _pStart)
+    {
+      *_pBuffer = '\0';
+    }
+    else
+    {
+      int length = pEnd - _pStart - 1;
+      //Serial.println(length);
+      if (length < _maxLength)
+      {
+        //Serial.println("strncpy1");
+        strncpy(_pBuffer, _pStart + 1, length);
+        *(_pBuffer + length) = '\0';
+        //Serial.println("strncpy2");
+      }
+      else
+      {
+        *_pBuffer = '\0';
+      }
+    }
+
+    if (*pEnd == '\0')
     {
       _finished = true;
     }
-    else if (c == '$')
-    {
-      _start = end + 1;
-    }
+    _pStart = pEnd;
 
-    return token;
+    //Serial.print("GetToken4: "); Serial.println(_pBuffer); Serial.flush();
+
+    return _pBuffer;
   }
 
   bool GetFinished()
   {
     return _finished;
   }
-};
 
+  void Reset()
+  {
+    _finished = false;
+    _pStart = _pString;
+  }
+};

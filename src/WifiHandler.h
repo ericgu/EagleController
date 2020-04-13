@@ -189,6 +189,8 @@ class WifiHandler
         {
           _pConfiguration->Save();
         }
+
+        UdpLogger.println("Connected");
       }
       else
       {

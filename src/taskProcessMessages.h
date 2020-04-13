@@ -20,6 +20,7 @@ public:
 
 private:
     const unsigned int localUdpPort = 4210;  // local port to listen on
+    const int udpLogCountMax = 100 * 60; // once per minute...
 
     const uint8_t _ledPin; // const means can't change other than in constructor
     bool _ledOn;
@@ -32,6 +33,7 @@ private:
     int _ledUpdateCount;
     int _updatesWithoutPackets = 0;
     int _updateCount = 0;
+    int _udpLogCount = 0;
 
     virtual bool OnStart() // optional
     {
@@ -70,8 +72,7 @@ private:
         }
         _packetCount++;
 
-        Command command(_buffer, 0);
-        _pPixelHandler->ProcessMessage(command);
+        _pPixelHandler->ProcessMessage(_buffer);
       }
       else
       {
@@ -117,6 +118,17 @@ private:
       }
     }
 
+    void UpdateUdpLogger()
+    {
+      _udpLogCount++;
+
+      if (_udpLogCount > udpLogCountMax)
+      {
+        UdpLogger.println("Heartbeat");
+        _udpLogCount = 0;
+      }
+    }
+
     virtual void OnUpdate(uint32_t deltaTime)
     {
       //Serial.println("update1"); Serial.flush();
@@ -126,10 +138,12 @@ private:
       UpdateHandleLed();
       //Serial.println("update3"); Serial.flush();
 
-      UpdatePixelHandler();
+      _pWifiHandler->Init(WifiStatusHandler, this);
       //Serial.println("update4"); Serial.flush();
  
-      _pWifiHandler->Init(WifiStatusHandler, this);
+      UpdatePixelHandler();
       //Serial.println("update5"); Serial.flush();
+
+      UpdateUdpLogger();
     }     
 };

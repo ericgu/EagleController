@@ -51,13 +51,21 @@ class IAnimation
 
     void SetPixelColor(int pixelIndex, RgbColor color)
     {
+      if (pixelIndex == 0)
+      {
+        //Serial.println(color.R);
+      }
       _pStrip->SetPixelColor(pixelIndex, color);  
     }
 
     void SetAllPixelColorWithGammaAndShow(RgbColor color)
     {
       for (int led = 0; led < GetPixelCount(); led++)
-      {
+      {      
+        if (led == 0)
+        {
+          //Serial.println(color.R);
+        }
         _pStrip->SetPixelColor(led, GammaCorrect(color));
       }
       _pStrip->Show();
@@ -67,8 +75,13 @@ class IAnimation
     {
       for (int led = 0; led < GetPixelCount(); led++)
       {
+        if (led == 0)
+        {
+          //Serial.println(color.R);
+        }        
         _pStrip->SetPixelColor(led, color);
-}
+      }
+
       _pStrip->Show();
     }
     

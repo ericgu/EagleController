@@ -47,6 +47,9 @@ const char* MainPageHtml2 = R"-----(
 <p><b>White Breathe (compound command)</b>&nbsp;
 <a href="/message?r=1&content=$200$rgbx255,255,255,200$200$rgbx0,0,0,200">$200$rgbx255,255,255,200$200$rgbx0,0,0,200</a></p>
 
+<p><b>Chaser</b>&nbsp;
+<a href="/message?r=1&content=chase_0,200,0,5,1,1,1">chasex0,200,0,5,1,1,1</a></p>
+
 <p><b>Save current color/animation</b>&nbsp;
 <a href="/message?r=1&content=s">s</a></p>
 
